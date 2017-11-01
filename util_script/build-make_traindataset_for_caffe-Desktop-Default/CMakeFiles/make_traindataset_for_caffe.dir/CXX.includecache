@@ -1,0 +1,38 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/jung/git/KAIST_EURECAR_RECOGNITION_MANUAL/util_script/make_traindataset_for_caffe/main.cpp
+iostream
+-
+stdio.h
+-
+vector
+-
+string
+-
+ctime
+-
+math.h
+-
+stdlib.h
+-
+sys/types.h
+-
+dirent.h
+-
+error.h
+-
+algorithm
+-
+fstream
+-
+unistd.h
+-
+sstream
+-
+

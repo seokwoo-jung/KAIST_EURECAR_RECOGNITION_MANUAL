@@ -1,0 +1,1 @@
+/usr/bin/g++      CMakeFiles/make_traindataset_for_caffe.dir/main.cpp.o  -o make_traindataset_for_caffe -rdynamic 
