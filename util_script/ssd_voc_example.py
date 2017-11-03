@@ -255,6 +255,7 @@ snapshot_prefix = "{}/{}".format(snapshot_dir, model_name)
 # job script path.
 job_file = "{}/{}.sh".format(job_dir, model_name)
 
+name_size_file ="/home/usrg_eurecar_stu/caffe/data/VOC_example/test_name_size.txt"
 # The pretrained model. We use the Fully convolutional reduced (atrous) VGGNet.
 pretrain_model = "data/VOC_example/VGG_ILSVRC_16_layers_fc_reduced.caffemodel"
 # Stores LabelMapItem.
@@ -370,7 +371,7 @@ solver_param = {
     'momentum': 0.9,
     'iter_size': iter_size,
     'max_iter': 120000,
-    'snapshot': 80000,
+    'snapshot': 1000,
     'display': 10,
     'average_loss': 10,
     'type': "SGD",
@@ -395,6 +396,15 @@ det_out_param = {
     'keep_top_k': 200,
     'confidence_threshold': 0.01,
     'code_type': code_type,
+    }
+
+# parameters for evaluating detection results.
+det_eval_param = {
+    'num_classes': num_classes,
+    'background_label_id': background_label_id,
+    'overlap_threshold': 0.5,
+    'evaluate_difficult_gt': False,
+    'name_size_file': name_size_file,
     }
 
 
@@ -470,6 +480,9 @@ elif multibox_loss_param["conf_loss_type"] == P.MultiBoxLoss.LOGISTIC:
 
 net.detection_out = L.DetectionOutput(*mbox_layers,
     detection_output_param=det_out_param,
+    include=dict(phase=caffe_pb2.Phase.Value('TEST')))
+net.detection_eval = L.DetectionEvaluate(net.detection_out, net.label,
+    detection_evaluate_param=det_eval_param,
     include=dict(phase=caffe_pb2.Phase.Value('TEST')))
 
 with open(test_net_file, 'w') as f:
