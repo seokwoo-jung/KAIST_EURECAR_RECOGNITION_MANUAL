@@ -125,7 +125,16 @@ int main(int argc,char* argv[])
     mkdir("caffe_img",0700);
     mkdir("caffe_label",0700);
 
-    ofstream ofile("trainval.txt");
+    vector<string> ofile_line_list;
+
+    ulong total_pixels = 0;
+    vector<ulong> pixels_per_label;
+    double mean_pixels = 0.0;
+    vector<double> class_weighting_per_label;
+    uint non_zero_class_count = 0;
+
+    pixels_per_label.resize(label_rgb_data_list.size());
+    class_weighting_per_label.resize(label_rgb_data_list.size());
 
     for(uint img_index = 0;img_index < img_file_path_list.size();img_index++)
     {
@@ -188,6 +197,8 @@ int main(int argc,char* argv[])
             {
                 for(uint y=0;y < label_color_img_resized.rows;y++)
                 {
+                    total_pixels++;
+
                     uint r_value = (uint)label_color_img_resized.at<cv::Vec3b>(y,x)[2];
                     uint g_value = (uint)label_color_img_resized.at<cv::Vec3b>(y,x)[1];
                     uint b_value = (uint)label_color_img_resized.at<cv::Vec3b>(y,x)[0];
@@ -201,6 +212,7 @@ int main(int argc,char* argv[])
                         {
                             find_target_class = true;
                             target_class = class_index;
+                            pixels_per_label.at(class_index)++;
                         }
                     }
 
@@ -221,14 +233,57 @@ int main(int argc,char* argv[])
 
             string ofile_line = target_img_path + " " + target_label_path;
 
-            ofile << ofile_line << endl;
+            ofile_line_list.push_back(ofile_line);
 
             cv::imwrite(target_img_path,ori_img_resized);
             cv::imwrite(target_label_path,label_img);
-
         }
     }
+    std::srand ( unsigned ( std::time(0) ) );
+    std::random_shuffle(ofile_line_list.begin(), ofile_line_list.end());
+
+    ofstream ofile("trainval.txt");
+    for(uint i = 0;i< ofile_line_list.size();i++)
+    {
+        string ofile_line = ofile_line_list.at(i);
+        ofile << ofile_line << endl;
+    }
     ofile.close();
+
+    /******************************************************/
+
+
+    /* CALCULATE CLASS WEIGHTING **************************
+     *
+     * */
+    ofstream ofile_class_weighting("class_weighting.txt");
+
+    for(uint class_index = 0; class_index < pixels_per_label.size(); class_index++)
+    {
+        ulong num_of_pixels = pixels_per_label.at(class_index);
+        if(num_of_pixels != 0)
+        {
+            non_zero_class_count++;
+        }
+    }
+
+    mean_pixels = (double)total_pixels/(double)non_zero_class_count;
+
+    for(uint class_index = 0; class_index < pixels_per_label.size(); class_index++)
+    {
+        ulong num_of_pixels = pixels_per_label.at(class_index);
+        if(num_of_pixels != 0)
+        {
+            class_weighting_per_label.at(class_index) = mean_pixels/num_of_pixels;
+        }
+        else
+        {
+            class_weighting_per_label.at(class_index) = 0;
+        }
+
+        ofile_class_weighting << "class_weighting: " << class_weighting_per_label.at(class_index) << endl;
+    }
+    ofile_class_weighting.close();
     /******************************************************/
 
 
